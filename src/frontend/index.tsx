@@ -3,6 +3,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { routeTree } from "./routes/routeTree.gen";
 
+import { AppProvider } from "@/hooks/use-app";
+import { TaskProvider } from "@/hooks/use-task";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { toast, Toaster } from "sonner";
 import "./index.css";
@@ -31,9 +33,16 @@ if (!rootElement.innerHTML) {
   const queryClient = new QueryClient({
     defaultOptions: {
       mutations: {
+        retry: 0,
         onError: async (error: any) => {
           const msg = (await error.response.text()) || "操作失败，请稍后重试";
           toast.error(msg);
+        },
+      },
+      queries: {
+        throwOnError: (error: unknown) => {
+          console.error(error);
+          return false;
         },
       },
     },
@@ -42,7 +51,11 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <Toaster richColors />
-        <RouterProvider router={router} />
+        <AppProvider>
+          <TaskProvider>
+            <RouterProvider router={router} />
+          </TaskProvider>
+        </AppProvider>
       </QueryClientProvider>
     </StrictMode>,
   );

@@ -16,7 +16,7 @@ export default defineConfig({
     },
   },
   html: {
-    title: "SingBoxConfigGenerator",
+    title: "Storkitty",
   },
   tools: {
     rspack: {
@@ -33,7 +33,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:3005",
+        target: "http://localhost:3330",
         changeOrigin: true,
       },
     },

@@ -9,13 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './__root'
+import { Route as SetupRouteImport } from './setup'
 import { Route as LoginRouteImport } from './login'
+import { Route as ListRouteRouteImport } from './list/route'
 import { Route as IndexRouteImport } from './index'
-import { Route as LogIndexRouteImport } from './log/index'
+import { Route as ListSpaceSplatRouteImport } from './list/$space/$'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListRouteRoute = ListRouteRouteImport.update({
+  id: '/list',
+  path: '/list',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -23,49 +35,70 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LogIndexRoute = LogIndexRouteImport.update({
-  id: '/log/',
-  path: '/log/',
-  getParentRoute: () => rootRouteImport,
+const ListSpaceSplatRoute = ListSpaceSplatRouteImport.update({
+  id: '/$space/$',
+  path: '/$space/$',
+  getParentRoute: () => ListRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/list': typeof ListRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/log': typeof LogIndexRoute
+  '/setup': typeof SetupRoute
+  '/list/$space/$': typeof ListSpaceSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/list': typeof ListRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/log': typeof LogIndexRoute
+  '/setup': typeof SetupRoute
+  '/list/$space/$': typeof ListSpaceSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/list': typeof ListRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/log/': typeof LogIndexRoute
+  '/setup': typeof SetupRoute
+  '/list/$space/$': typeof ListSpaceSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/log'
+  fullPaths: '/' | '/list' | '/login' | '/setup' | '/list/$space/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/log'
-  id: '__root__' | '/' | '/login' | '/log/'
+  to: '/' | '/list' | '/login' | '/setup' | '/list/$space/$'
+  id: '__root__' | '/' | '/list' | '/login' | '/setup' | '/list/$space/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ListRouteRoute: typeof ListRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
-  LogIndexRoute: typeof LogIndexRoute
+  SetupRoute: typeof SetupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/list': {
+      id: '/list'
+      path: '/list'
+      fullPath: '/list'
+      preLoaderRoute: typeof ListRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -75,20 +108,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/log/': {
-      id: '/log/'
-      path: '/log'
-      fullPath: '/log'
-      preLoaderRoute: typeof LogIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/list/$space/$': {
+      id: '/list/$space/$'
+      path: '/$space/$'
+      fullPath: '/list/$space/$'
+      preLoaderRoute: typeof ListSpaceSplatRouteImport
+      parentRoute: typeof ListRouteRoute
     }
   }
 }
 
+interface ListRouteRouteChildren {
+  ListSpaceSplatRoute: typeof ListSpaceSplatRoute
+}
+
+const ListRouteRouteChildren: ListRouteRouteChildren = {
+  ListSpaceSplatRoute: ListSpaceSplatRoute,
+}
+
+const ListRouteRouteWithChildren = ListRouteRoute._addFileChildren(
+  ListRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ListRouteRoute: ListRouteRouteWithChildren,
   LoginRoute: LoginRoute,
-  LogIndexRoute: LogIndexRoute,
+  SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

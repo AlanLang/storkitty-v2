@@ -1,6 +1,5 @@
-import { useAuth } from "@/hooks/use-auth";
+import { useIsWaitingAppInfo } from "@/hooks/use-app";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
-
 export const Route = createRootRoute({
   component: () => {
     return <RootRouteComponent />;
@@ -8,9 +7,9 @@ export const Route = createRootRoute({
 });
 
 function RootRouteComponent() {
-  const { isLoading } = useAuth();
+  const isWaitingAppInfo = useIsWaitingAppInfo();
 
-  if (isLoading) {
+  if (isWaitingAppInfo) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -22,7 +21,7 @@ function RootRouteComponent() {
   }
 
   return (
-    <div className="@container/main flex flex-1 flex-col">
+    <div className="@container/main flex flex-1 flex-col h-screen">
       <Outlet />
     </div>
   );

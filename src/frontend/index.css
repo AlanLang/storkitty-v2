@@ -95,7 +95,6 @@
   --radius: 0.5rem;
 }
 
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -145,5 +144,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    @apply antialiased;
   }
 }

@@ -182,3 +182,5 @@ data
 /target
 
 !.vscode
+
+data.db
