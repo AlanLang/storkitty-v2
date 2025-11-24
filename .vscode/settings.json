@@ -4,5 +4,13 @@
     "source.organizeImports": "explicit",
     "source.fixAll": "explicit"
   },
-  "biome.enabled": true
+  "biome.enabled": true,
+  "[rust]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    },
+    "editor.formatOnSave": true
+  },
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative"
 }

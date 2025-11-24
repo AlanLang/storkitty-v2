@@ -2,10 +2,11 @@
   "$schema": "https://biomejs.dev/schemas/2.3.6/schema.json",
   "files": {
     "includes": [
-      "**",
+      "src/frontend/**",
       "!!dist",
-      "!!src/frontend/components/**/*.tsx",
-      "!!src/frontend/index.css"
+      "!!src/frontend/components/**/*.{ts,tsx}",
+      "!!src/frontend/index.css",
+      "!!src/frontend/routes/routeTree.gen.ts"
     ]
   },
   "formatter": {
