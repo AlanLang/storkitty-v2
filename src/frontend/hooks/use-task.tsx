@@ -75,10 +75,18 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     "size-5 transition-transform duration-200",
     mini ? "rotate-180" : "",
   );
+
+  const sheetContentClass = cn(
+    "rounded-xl inset-x-auto right-0 h-fit sm:m-[32px] overflow-hidden transition-all duration-200",
+    mini ? "w-[100px]" : "w-full sm:w-[500px]",
+  );
+
   const contentClass = cn(
     "flex flex-col transition-all duration-200",
     mini ? "h-0" : "h-[350px]",
   );
+
+  const miniHiddenClass = cn("", mini ? "hidden" : "");
 
   const taskTitle = useMemo(() => {
     return open === "upload-file" ? "上传队列" : "远程下载";
@@ -97,19 +105,22 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
           {children}
           <SheetContent
             showShadow={!mini}
-            className="w-full sm:w-[500px] rounded-xl inset-x-auto right-0 h-fit sm:m-[32px] overflow-hidden"
+            className={sheetContentClass}
             onClose={() => setOpen(null)}
           >
             <div className="flex items-center justify-between bg-muted p-2">
               <div className="flex items-center gap-2">
                 <SheetCloseButton />
-                <SheetTitle>{taskTitle}</SheetTitle>
+                <SheetTitle className={miniHiddenClass}>{taskTitle}</SheetTitle>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-full hover:bg-ring/20 "
+                      className={cn(
+                        "rounded-full hover:bg-ring/20 ",
+                        miniHiddenClass,
+                      )}
                     >
                       <ChevronDownIcon className="size-5" />
                     </Button>
@@ -135,14 +146,20 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full hover:bg-ring/20 "
+                  className={cn(
+                    "rounded-full hover:bg-ring/20 ",
+                    miniHiddenClass,
+                  )}
                 >
                   <Ellipsis className="size-5" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full hover:bg-ring/20 "
+                  className={cn(
+                    "rounded-full hover:bg-ring/20 ",
+                    miniHiddenClass,
+                  )}
                 >
                   <PlusIcon className="size-5" />
                 </Button>
