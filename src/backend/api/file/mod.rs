@@ -9,6 +9,6 @@ use crate::backend::db::DBConnection;
 
 pub fn create_file_router() -> Router<DBConnection> {
   Router::<DBConnection>::new()
-    .route("/", delete(delete::delete_file))
+    .route("/{*path}", delete(delete::delete_file))
     .route("/list/{*path}", get(list::list_files))
 }

@@ -3,8 +3,8 @@ use std::path::PathBuf;
 use anyhow::Context;
 use axum::{
   body::Body,
-  extract::{FromRef, FromRequest, Request, rejection::JsonRejection},
-  http::StatusCode,
+  extract::{FromRef, FromRequestParts, Path},
+  http::{StatusCode, request::Parts},
   response::Response,
 };
 
@@ -13,10 +13,6 @@ use crate::backend::{
   error::AppError,
   utils::{self, path::split_path},
 };
-
-pub trait WithStorage {
-  fn get_path(&self) -> &str;
-}
 
 pub struct SafePath(pub PathBuf);
 
@@ -32,31 +28,25 @@ impl SafePath {
   }
 }
 
-pub struct StorageExtractor<T>(pub T, pub SafePath);
+pub struct Storage(pub SafePath);
 
-impl<S, T> FromRequest<S> for StorageExtractor<T>
+impl<S> FromRequestParts<S> for Storage
 where
-  axum::Json<T>: FromRequest<S, Rejection = JsonRejection>,
-  T: WithStorage + Send,
   DBConnection: FromRef<S>,
   S: Send + Sync,
 {
   type Rejection = Response;
 
-  async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
-    let body_json = match axum::Json::<T>::from_request(req, state).await {
-      Ok(value) => value.0,
-      Err(rejection) => {
-        return Err(
-          Response::builder()
-            .status(rejection.status())
-            .body(Body::from(rejection.body_text()))
-            .unwrap_or_default(),
-        );
-      }
-    };
-
-    let path = body_json.get_path().to_string();
+  async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+    // 获取 url 上 {*path} 的 path 值
+    let Path(path) = Path::<String>::from_request_parts(parts, state)
+      .await
+      .map_err(|err| {
+        Response::builder()
+          .status(StatusCode::BAD_REQUEST)
+          .body(Body::from(err.to_string()))
+          .unwrap_or_default()
+      })?;
 
     if !utils::validate::validate_path(&path) {
       return Err(
@@ -92,6 +82,6 @@ where
     let local_path =
       SafePath::new(PathBuf::from(&storage.local_path).join(path.unwrap_or_default()));
 
-    Ok(Self(body_json, local_path))
+    Ok(Self(local_path))
   }
 }

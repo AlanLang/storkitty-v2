@@ -2,7 +2,7 @@ use axum::Json;
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::backend::{db::DBConnection, error::AppError, extractor::demo::Storage, utils};
+use crate::backend::{db::DBConnection, error::AppError, extractor::storage::Storage, utils};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

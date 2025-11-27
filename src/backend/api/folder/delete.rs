@@ -1,36 +1,31 @@
+use axum::Json;
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::backend::{
-  db::DBConnection,
-  error::AppError,
-  extractor::storage::{StorageExtractor, WithStorage},
-};
+use crate::backend::{db::DBConnection, error::AppError, extractor::storage::Storage};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeleteFolderDto {
-  name: String,
-  path: String,
-}
-
-impl WithStorage for DeleteFolderDto {
-  fn get_path(&self) -> &str {
-    &self.path
-  }
+  targets: Vec<String>,
 }
 
 #[axum::debug_handler(state = DBConnection)]
 pub async fn delete_folder(
-  StorageExtractor(dto, local_path): StorageExtractor<DeleteFolderDto>,
+  Storage(local_path): Storage,
+  Json(dto): Json<DeleteFolderDto>,
 ) -> Result<(), AppError> {
-  let name = dto.name;
-  let local_path = local_path.safe_join(&name)?;
-
-  if !local_path.exists() {
-    return Err(AppError::new("目录不存在"));
+  for target in dto.targets {
+    let local_path = local_path.safe_join(&target)?;
+    if !local_path.exists() {
+      log::error!("folder not found: {}", local_path.display());
+      continue;
+    }
+    if local_path.is_file() {
+      log::error!("folder is a file: {}", local_path.display());
+      continue;
+    }
+    fs::remove_dir_all(&local_path).await?;
   }
-
-  fs::remove_dir_all(&local_path).await?;
   Ok(())
 }
