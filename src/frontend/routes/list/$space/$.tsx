@@ -1,4 +1,4 @@
-import { FileType, type FileInfo } from "@/api/file/list";
+import type { FileInfo } from "@/api/file/list";
 import { MenuList, type MenuListProps } from "@/components/menu-list";
 import { TimeDisplay } from "@/components/time-display";
 import { Button } from "@/components/ui/button";
@@ -39,12 +39,10 @@ import {
   UploadIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { FileDeleteDialog } from "./components/file-delete-dialog";
 import { FileIcon } from "./components/file-icon";
 import { FileListEmpty } from "./components/file-list-empty";
-import { FolderCreateDialog } from "./components/folder-create-dialog";
-import { FolderDeleteDialog } from "./components/folder-delete-dialog";
 import { ListContextMenu } from "./components/list-context-menu";
+import { ListDialog, type ListDialogProps } from "./components/list-dialog";
 import { FileListSidebar } from "./components/sidebar";
 
 export const Route = createFileRoute("/list/$space/$")({
@@ -53,9 +51,7 @@ export const Route = createFileRoute("/list/$space/$")({
 
 function RouteComponent() {
   const queryClient = useQueryClient();
-  const [needDelete, setNeedDelete] = useState<FileInfo | null>(null);
-  const [isCreateFolderDialogOpen, setIsCreateFolderDialogOpen] =
-    useState(false);
+  const [open, setOpen] = useState<ListDialogProps["open"]>(null);
 
   const { space, _splat } = Route.useParams();
   const path = `${space}/${_splat}`;
@@ -66,56 +62,32 @@ function RouteComponent() {
       <FileListSidebar />
       <ListContextMenu
         onUpload={openFileDialog}
-        onCreateFolder={() => setIsCreateFolderDialogOpen(true)}
+        onCreateFolder={() => setOpen({ type: "create-folder", file: null })}
       >
         <SidebarInset className="flex-1 flex flex-col">
           <div className="border-b p-4 flex items-center h-18">
             <FileToolbar
               onOpenFileUpload={openFileDialog}
-              onCreateFolder={() => setIsCreateFolderDialogOpen(true)}
+              onCreateFolder={() =>
+                setOpen({ type: "create-folder", file: null })
+              }
             />
           </div>
           <div className="flex-1 p-4 flex flex-col gap-4">
             <FileBreadcrumb />
-            <FileList onDelete={setNeedDelete} />
+            <FileList
+              onDelete={(file) => setOpen({ type: "delete", file })}
+              onRename={(file) => setOpen({ type: "rename", file })}
+            />
           </div>
         </SidebarInset>
       </ListContextMenu>
-
-      <FolderDeleteDialog
+      <ListDialog
         path={path}
-        name={needDelete?.name ?? ""}
-        count={needDelete?.items ?? 0}
-        isOpen={needDelete?.fileType === FileType.Folder}
-        onCancel={() => setNeedDelete(null)}
+        open={open}
+        onCancel={() => setOpen(null)}
         onFinish={() => {
-          setNeedDelete(null);
-          queryClient.invalidateQueries({
-            queryKey: [QUERY_KEY, path],
-          });
-        }}
-      />
-
-      <FileDeleteDialog
-        path={path}
-        name={needDelete?.name ?? ""}
-        size={needDelete?.size ?? undefined}
-        isOpen={needDelete?.fileType === FileType.File}
-        onCancel={() => setNeedDelete(null)}
-        onFinish={() => {
-          setNeedDelete(null);
-          queryClient.invalidateQueries({
-            queryKey: [QUERY_KEY, path],
-          });
-        }}
-      />
-
-      <FolderCreateDialog
-        path={path}
-        isOpen={isCreateFolderDialogOpen}
-        onCancel={() => setIsCreateFolderDialogOpen(false)}
-        onFinish={() => {
-          setIsCreateFolderDialogOpen(false);
+          setOpen(null);
           queryClient.invalidateQueries({
             queryKey: [QUERY_KEY, path],
           });
@@ -251,7 +223,13 @@ function FileBreadcrumb() {
   );
 }
 
-function FileList({ onDelete }: { onDelete: (file: FileInfo) => void }) {
+function FileList({
+  onDelete,
+  onRename,
+}: {
+  onDelete: (file: FileInfo) => void;
+  onRename: (file: FileInfo) => void;
+}) {
   const { space, _splat } = Route.useParams();
   const navigate = useNavigate();
   const { data, isLoading, error } = useFileList({ space, splat: _splat });
@@ -267,7 +245,7 @@ function FileList({ onDelete }: { onDelete: (file: FileInfo) => void }) {
 
   if (isLoading) {
     return (
-      <div className="divide-y divide-border border animate-fade-in-delayed">
+      <div className="divide-y divide-border animate-fade-in-delayed">
         {Array.from({ length: 5 }, (_, index) => index + 1).map((step) => (
           <div
             key={step}
@@ -308,6 +286,7 @@ function FileList({ onDelete }: { onDelete: (file: FileInfo) => void }) {
           file={file}
           onClick={handleClick}
           onDelete={onDelete}
+          onRename={onRename}
         />
       ))}
     </div>
@@ -317,10 +296,16 @@ function FileList({ onDelete }: { onDelete: (file: FileInfo) => void }) {
 interface FileListItemProps {
   file: FileInfo;
   onDelete: (file: FileInfo) => void;
+  onRename: (file: FileInfo) => void;
   onClick: (file: FileInfo) => void;
 }
 
-function FileListItem({ file, onClick, onDelete }: FileListItemProps) {
+function FileListItem({
+  file,
+  onClick,
+  onDelete,
+  onRename,
+}: FileListItemProps) {
   const items: MenuListProps["items"] = [
     {
       label: "下载",
@@ -343,7 +328,7 @@ function FileListItem({ file, onClick, onDelete }: FileListItemProps) {
     {
       label: "重命名",
       icon: <FolderPen className="mr-2 h-4 w-4" />,
-      onClick: () => {},
+      onClick: () => onRename(file),
     },
     {
       label: "复制",
