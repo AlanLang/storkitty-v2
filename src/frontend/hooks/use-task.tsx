@@ -3,24 +3,25 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetTitle } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import { FileIcon } from "@/routes/list/$space/components/file-icon";
-import * as SheetPrimitive from "@radix-ui/react-dialog";
+import { animated, config, useSpring } from "@react-spring/web";
 import {
   ChevronDownIcon,
-  Ellipsis,
-  PlusIcon,
+  Loader2,
+  Maximize2,
+  Minimize2,
   Trash2,
   XIcon,
 } from "lucide-react";
 import { createContext, useContext, useMemo, useState } from "react";
+
+import { useIsMobile } from "./use-mobile";
+import { useWindowSize } from "./use-window-size";
 
 export function useTaskDrawer() {
   const { setOpen } = useContext(DrawerContext);
@@ -30,6 +31,9 @@ export function useTaskDrawer() {
 export function TaskProvider({ children }: { children: React.ReactNode }) {
   const [mini, setMini] = useState(false);
   const [open, setOpen] = useState<DrawerType | null>(null);
+  const isMobile = useIsMobile();
+  const { width: windowWidth, height: windowHeight } = useWindowSize();
+
   const [task, setTask] = useState<Task>({
     uploads: [
       {
@@ -71,62 +75,98 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       },
     ],
   });
-  const miniButtonIconClass = cn(
-    "size-5 transition-transform duration-200",
-    mini ? "rotate-180" : "",
-  );
-
-  const sheetContentClass = cn(
-    "rounded-xl inset-x-auto right-0 h-fit sm:m-[32px] overflow-hidden transition-all duration-200",
-    mini ? "w-[100px]" : "w-full sm:w-[500px]",
-  );
-
-  const contentClass = cn(
-    "flex flex-col transition-all duration-200",
-    mini ? "h-0" : "h-[350px]",
-  );
-
-  const miniHiddenClass = cn("", mini ? "hidden" : "");
 
   const taskTitle = useMemo(() => {
     return open === "upload-file" ? "上传队列" : "远程下载";
   }, [open]);
 
+  // Spring animation for the container
+  const containerSpring = useSpring({
+    width: mini ? "60px" : isMobile ? `${windowWidth}px` : "400px",
+    height: mini ? "60px" : isMobile ? `${windowHeight}px` : "500px",
+    borderRadius: mini ? "30px" : isMobile ? "0px" : "12px",
+    right: mini ? "16px" : isMobile ? "0px" : "16px",
+    bottom: mini ? "16px" : isMobile ? "0px" : "16px",
+    opacity: open ? 1 : 0,
+    transform: open ? "translateY(0px) scale(1)" : "translateY(120%) scale(1)",
+    pointerEvents: (open ? "auto" : "none") as "auto" | "none",
+    config: { ...config.stiff, tension: 280, friction: 30 },
+  });
+
+  // Spring for content opacity
+  const contentSpring = useSpring({
+    opacity: mini ? 0 : 1,
+    pointerEvents: (mini ? "none" : "auto") as "auto" | "none",
+    config: { duration: 200 },
+  });
+
+  // Spring for mini indicator opacity
+  const miniSpring = useSpring({
+    opacity: mini ? 1 : 0,
+    pointerEvents: (mini ? "auto" : "none") as "auto" | "none",
+    config: { duration: 200 },
+  });
+
+  // Spring for overlay opacity
+  const overlaySpring = useSpring({
+    opacity: open && !mini ? 1 : 0,
+    pointerEvents: (open && !mini ? "auto" : "none") as "auto" | "none",
+    config: { duration: 200 },
+  });
+
+  const inProgressCount = task.uploads.filter(
+    (u) => u.status === "in_progress",
+  ).length;
+
   return (
     <DrawerContext.Provider value={{ open, setOpen }}>
       <TaskContext.Provider value={{ task, setTask }}>
-        <Sheet
-          modal={false}
-          open={!!open}
-          onOpenChange={(isOpen) => {
-            setOpen(isOpen ? "upload-file" : null);
-          }}
-        >
-          {children}
-          <SheetContent
-            showShadow={!mini}
-            className={sheetContentClass}
-            onClose={() => setOpen(null)}
+        {children}
+
+        {/* Overlay */}
+        <animated.div
+          style={overlaySpring}
+          className="fixed inset-0 bg-black/10 backdrop-blur-xs z-40"
+          onClick={() => setOpen(null)}
+        />
+
+        {/* Fixed Container */}
+        <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+          <animated.div
+            style={{
+              ...containerSpring,
+              position: "absolute",
+              overflow: "hidden",
+            }}
+            className="bg-background border shadow-xl pointer-events-auto"
           >
-            <div className="flex items-center justify-between bg-muted p-2">
-              <div className="flex items-center gap-2">
-                <SheetCloseButton />
-                <SheetTitle className={miniHiddenClass}>{taskTitle}</SheetTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={cn(
-                        "rounded-full hover:bg-ring/20 ",
-                        miniHiddenClass,
-                      )}
-                    >
-                      <ChevronDownIcon className="size-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52">
-                    <DropdownMenuGroup>
+            {/* Expanded Content */}
+            <animated.div
+              style={contentSpring}
+              className="absolute inset-0 flex flex-col w-full h-full"
+            >
+              <div className="flex items-center justify-between bg-muted/50 p-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full hover:bg-background/80"
+                    onClick={() => setOpen(null)}
+                  >
+                    <XIcon className="size-4" />
+                  </Button>
+                  <span className="font-medium text-sm">{taskTitle}</span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 rounded-full -ml-1"
+                      >
+                        <ChevronDownIcon className="size-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
                       <DropdownMenuRadioGroup
                         value={open ?? "upload-file"}
                         onValueChange={(value) => setOpen(value as DrawerType)}
@@ -138,93 +178,100 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
                           远程下载
                         </DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full"
+                    onClick={() => setMini(true)}
+                  >
+                    <Minimize2 className="size-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "rounded-full hover:bg-ring/20 ",
-                    miniHiddenClass,
-                  )}
-                >
-                  <Ellipsis className="size-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "rounded-full hover:bg-ring/20 ",
-                    miniHiddenClass,
-                  )}
-                >
-                  <PlusIcon className="size-5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-full hover:bg-ring/20 "
-                  onClick={() => setMini(!mini)}
-                >
-                  <ChevronDownIcon className={miniButtonIconClass} />
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className={cn(contentClass)}>
-              {task.uploads.map((upload) => (
-                <div
-                  key={upload.fileName}
-                  className={cn(
-                    "flex items-center justify-between p-3 hover:bg-muted/50 cursor-pointer group mt-0 border-b border-border relative",
-                  )}
-                >
-                  {upload.status === "in_progress" && (
-                    <ProgressDrawer
-                      total={upload.size}
-                      uploaded={upload.uploaded}
-                    />
-                  )}
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 flex items-center justify-center rounded bg-muted group-hover:bg-muted/80">
-                      <FileIcon
-                        fileInfo={{
-                          fileType: "file" as FileType,
-                          name: upload.fileName,
+
+              <ScrollArea className="flex-1">
+                {task.uploads.map((upload, index) => (
+                  <div
+                    key={`${upload.fileName}-${index}`}
+                    className="flex items-center justify-between p-3 hover:bg-muted/50 group border-b border-border/50 last:border-0 relative"
+                  >
+                    {upload.status === "in_progress" && (
+                      <div
+                        className="absolute bottom-0 left-0 top-0 bg-primary/5 pointer-events-none transition-all duration-300"
+                        style={{
+                          width: `${(upload.uploaded / upload.size) * 100}%`,
                         }}
                       />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{upload.fileName}</p>
-                      {upload.status === "in_progress" && (
-                        <p className="text-xs text-muted-foreground">
-                          {upload.uploaded} / {upload.size}
+                    )}
+                    <div className="flex items-center gap-3 relative z-10">
+                      <div className="w-8 h-8 flex items-center justify-center rounded bg-muted">
+                        <FileIcon
+                          fileInfo={{
+                            fileType: "file" as FileType,
+                            name: upload.fileName,
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-sm font-medium leading-none">
+                          {upload.fileName}
                         </p>
-                      )}
-                      {upload.status === "completed" && (
-                        <p className="text-xs text-sky-400">完成</p>
-                      )}
-                      {upload.status === "failed" && (
-                        <p className="text-xs text-red-400">失败</p>
-                      )}
+                        <div className="flex items-center gap-2">
+                          {upload.status === "in_progress" && (
+                            <span className="text-xs text-muted-foreground">
+                              {upload.uploaded} / {upload.size}
+                            </span>
+                          )}
+                          {upload.status === "completed" && (
+                            <span className="text-xs text-green-500 flex items-center gap-1">
+                              完成
+                            </span>
+                          )}
+                          {upload.status === "failed" && (
+                            <span className="text-xs text-red-500">失败</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="rounded-full"
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Trash2 className="size-3 text-red-400" />
+                      <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
                     </Button>
                   </div>
-                </div>
-              ))}
-            </ScrollArea>
-          </SheetContent>
-        </Sheet>
+                ))}
+              </ScrollArea>
+            </animated.div>
+
+            {/* Collapsed Content (Mini) */}
+            <animated.div
+              style={miniSpring}
+              className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-muted/20 transition-colors"
+              onClick={() => setMini(false)}
+            >
+              <div className="relative">
+                {inProgressCount > 0 ? (
+                  <div className="relative flex items-center justify-center">
+                    <Loader2 className="size-6 animate-spin text-primary" />
+                    <span className="absolute text-[10px] font-bold">
+                      {inProgressCount}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="bg-primary text-primary-foreground rounded-full p-2">
+                    <Maximize2 className="size-5" />
+                  </div>
+                )}
+              </div>
+            </animated.div>
+          </animated.div>
+        </div>
       </TaskContext.Provider>
     </DrawerContext.Provider>
   );
@@ -267,79 +314,3 @@ const DrawerContext = createContext<{
   open: null,
   setOpen: () => {},
 });
-
-function SheetOverlay({
-  className,
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Overlay>) {
-  return (
-    <div
-      data-slot="sheet-overlay"
-      className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 bg-black/10 backdrop-blur-xs",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-function SheetContent({
-  className,
-  children,
-  showShadow = true,
-  onClose,
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Content> & {
-  showShadow?: boolean;
-  onClose?: () => void;
-}) {
-  return (
-    <SheetPrimitive.Portal>
-      {showShadow && <SheetOverlay onClick={onClose} />}
-      <SheetPrimitive.Content
-        onFocusOutside={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        onInteractOutside={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        data-slot="sheet-content"
-        className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom bottom-0 h-auto border-t",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </SheetPrimitive.Content>
-    </SheetPrimitive.Portal>
-  );
-}
-
-function SheetCloseButton() {
-  return (
-    <SheetPrimitive.Close className="p-2 rounded-full hover:bg-ring/20">
-      <XIcon className="size-5" />
-      <span className="sr-only">Close</span>
-    </SheetPrimitive.Close>
-  );
-}
-
-function ProgressDrawer({
-  total,
-  uploaded,
-}: {
-  total: number;
-  uploaded: number;
-}) {
-  const progress = uploaded / total;
-  return (
-    <div
-      className="absolute bottom-0 left-0 top-0 bg-primary/10 pointer-events-none"
-      style={{ width: `${progress * 100}%` }}
-    ></div>
-  );
-}
