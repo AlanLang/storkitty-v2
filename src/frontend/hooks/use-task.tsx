@@ -15,17 +15,63 @@ import {
   Loader2,
   Maximize2,
   Minimize2,
+  PackageOpen,
+  Plus,
   Trash2,
   XIcon,
 } from "lucide-react";
 import { createContext, useContext, useMemo, useState } from "react";
 
+import { useFileUpload } from "@/hooks/use-file-upload";
 import { useIsMobile } from "./use-mobile";
 import { useWindowSize } from "./use-window-size";
+const list = [
+  {
+    fileName: "test.txt",
+    size: 100,
+    status: "in_progress",
+    speed: 100,
+    uploaded: 40,
+  },
+  {
+    fileName: "avatar.png",
+    size: 1000,
+    status: "completed",
+  },
+  {
+    fileName: "demo.zip",
+    size: 1000,
+    status: "failed",
+  },
+  {
+    fileName: "demo.zip",
+    size: 1000,
+    status: "failed",
+  },
+  {
+    fileName: "demo.zip",
+    size: 1000,
+    status: "failed",
+  },
+  {
+    fileName: "demo.zip",
+    size: 1000,
+    status: "failed",
+  },
+  {
+    fileName: "demo.zip",
+    size: 1000,
+    status: "failed",
+  },
+];
 
 export function useTaskDrawer() {
   const { setOpen } = useContext(DrawerContext);
   return setOpen;
+}
+
+export function useFileUploadDialog() {
+  return useContext(FileUploadContext);
 }
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
@@ -34,46 +80,13 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const { width: windowWidth, height: windowHeight } = useWindowSize();
 
+  const [{ files }, { removeFile, openFileDialog, getInputProps }] =
+    useFileUpload({
+      accept: "image/*",
+    });
+
   const [task, setTask] = useState<Task>({
-    uploads: [
-      {
-        fileName: "test.txt",
-        size: 100,
-        status: "in_progress",
-        speed: 100,
-        uploaded: 40,
-      },
-      {
-        fileName: "avatar.png",
-        size: 1000,
-        status: "completed",
-      },
-      {
-        fileName: "demo.zip",
-        size: 1000,
-        status: "failed",
-      },
-      {
-        fileName: "demo.zip",
-        size: 1000,
-        status: "failed",
-      },
-      {
-        fileName: "demo.zip",
-        size: 1000,
-        status: "failed",
-      },
-      {
-        fileName: "demo.zip",
-        size: 1000,
-        status: "failed",
-      },
-      {
-        fileName: "demo.zip",
-        size: 1000,
-        status: "failed",
-      },
-    ],
+    uploads: list as UploadFileTask[],
   });
 
   const taskTitle = useMemo(() => {
@@ -121,158 +134,193 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   return (
     <DrawerContext.Provider value={{ open, setOpen }}>
       <TaskContext.Provider value={{ task, setTask }}>
-        {children}
+        <FileUploadContext.Provider
+          value={{
+            openFileDialog: () => {
+              openFileDialog();
+              setOpen("upload-file");
+            },
+          }}
+        >
+          {children}
 
-        {/* Overlay */}
-        <animated.div
-          style={overlaySpring}
-          className="fixed inset-0 bg-black/10 backdrop-blur-xs z-40"
-          onClick={() => setOpen(null)}
-        />
-
-        {/* Fixed Container */}
-        <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+          {/* Overlay */}
           <animated.div
-            style={{
-              ...containerSpring,
-              position: "absolute",
-              overflow: "hidden",
-            }}
-            className="bg-background border shadow-xl pointer-events-auto"
-          >
-            {/* Expanded Content */}
-            <animated.div
-              style={contentSpring}
-              className="absolute inset-0 flex flex-col w-full h-full"
-            >
-              <div className="flex items-center justify-between bg-muted/50 p-3 border-b">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full hover:bg-background/80"
-                    onClick={() => setOpen(null)}
-                  >
-                    <XIcon className="size-4" />
-                  </Button>
-                  <span className="font-medium text-sm">{taskTitle}</span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 rounded-full -ml-1"
-                      >
-                        <ChevronDownIcon className="size-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuRadioGroup
-                        value={open ?? "upload-file"}
-                        onValueChange={(value) => setOpen(value as DrawerType)}
-                      >
-                        <DropdownMenuRadioItem value="upload-file">
-                          上传队列
-                        </DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="remote-download">
-                          远程下载
-                        </DropdownMenuRadioItem>
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={() => setMini(true)}
-                  >
-                    <Minimize2 className="size-4" />
-                  </Button>
-                </div>
-              </div>
+            style={overlaySpring}
+            className="fixed inset-0 bg-black/10 backdrop-blur-xs z-40"
+            onClick={() => setOpen(null)}
+          />
 
-              <ScrollArea className="flex-1">
-                {task.uploads.map((upload, index) => (
-                  <div
-                    key={`${upload.fileName}-${index}`}
-                    className="flex items-center justify-between p-3 hover:bg-muted/50 group border-b border-border/50 last:border-0 relative"
-                  >
-                    {upload.status === "in_progress" && (
-                      <div
-                        className="absolute bottom-0 left-0 top-0 bg-primary/5 pointer-events-none transition-all duration-300"
-                        style={{
-                          width: `${(upload.uploaded / upload.size) * 100}%`,
-                        }}
-                      />
-                    )}
-                    <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-8 h-8 flex items-center justify-center rounded bg-muted">
-                        <FileIcon
-                          fileInfo={{
-                            fileType: "file" as FileType,
-                            name: upload.fileName,
-                          }}
-                        />
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <p className="text-sm font-medium leading-none">
-                          {upload.fileName}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          {upload.status === "in_progress" && (
-                            <span className="text-xs text-muted-foreground">
-                              {upload.uploaded} / {upload.size}
-                            </span>
-                          )}
-                          {upload.status === "completed" && (
-                            <span className="text-xs text-green-500 flex items-center gap-1">
-                              完成
-                            </span>
-                          )}
-                          {upload.status === "failed" && (
-                            <span className="text-xs text-red-500">失败</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+          {/* Fixed Container */}
+          <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
+            <animated.div
+              style={{
+                ...containerSpring,
+                position: "absolute",
+                overflow: "hidden",
+              }}
+              className="bg-background border shadow-xl pointer-events-auto"
+            >
+              {/* Expanded Content */}
+              <animated.div
+                style={contentSpring}
+                className="absolute inset-0 flex flex-col w-full h-full"
+              >
+                <div className="flex items-center justify-between bg-muted/50 p-3 border-b">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="h-8 w-8 rounded-full hover:bg-background/80"
+                      onClick={() => setOpen(null)}
                     >
-                      <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                      <XIcon className="size-4" />
+                    </Button>
+                    <span className="font-medium text-sm">{taskTitle}</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 rounded-full -ml-1"
+                        >
+                          <ChevronDownIcon className="size-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuRadioGroup
+                          value={open ?? "upload-file"}
+                          onValueChange={(value) =>
+                            setOpen(value as DrawerType)
+                          }
+                        >
+                          <DropdownMenuRadioItem value="upload-file">
+                            上传队列
+                          </DropdownMenuRadioItem>
+                          <DropdownMenuRadioItem value="remote-download">
+                            远程下载
+                          </DropdownMenuRadioItem>
+                        </DropdownMenuRadioGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={openFileDialog}
+                    >
+                      <Plus className="size-4" />
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => setMini(true)}
+                    >
+                      <Minimize2 className="size-4" />
                     </Button>
                   </div>
-                ))}
-              </ScrollArea>
-            </animated.div>
+                </div>
 
-            {/* Collapsed Content (Mini) */}
-            <animated.div
-              style={miniSpring}
-              className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-muted/20 transition-colors"
-              onClick={() => setMini(false)}
-            >
-              <div className="relative">
-                {inProgressCount > 0 ? (
-                  <div className="relative flex items-center justify-center">
-                    <Loader2 className="size-6 animate-spin text-primary" />
-                    <span className="absolute text-[10px] font-bold">
-                      {inProgressCount}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="bg-primary text-primary-foreground rounded-full p-2">
-                    <Maximize2 className="size-5" />
+                {task.uploads.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <PackageOpen className="size-10 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      暂无上传任务
+                    </p>
                   </div>
                 )}
-              </div>
+
+                <ScrollArea className="flex-1">
+                  {task.uploads.map((upload, index) => (
+                    <div
+                      key={`${upload.fileName}-${index}`}
+                      className="flex items-center justify-between p-3 hover:bg-muted/50 group border-b border-border/50 last:border-0 relative"
+                    >
+                      {upload.status === "in_progress" && (
+                        <div
+                          className="absolute bottom-0 left-0 top-0 bg-primary/5 pointer-events-none transition-all duration-300"
+                          style={{
+                            width: `${(upload.uploaded / upload.size) * 100}%`,
+                          }}
+                        />
+                      )}
+                      <div className="flex items-center gap-3 relative z-10">
+                        <div className="w-8 h-8 flex items-center justify-center rounded bg-muted">
+                          <FileIcon
+                            fileInfo={{
+                              fileType: "file" as FileType,
+                              name: upload.fileName,
+                            }}
+                          />
+                        </div>
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-sm font-medium leading-none">
+                            {upload.fileName}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            {upload.status === "in_progress" && (
+                              <span className="text-xs text-muted-foreground">
+                                {upload.uploaded} / {upload.size}
+                              </span>
+                            )}
+                            {upload.status === "completed" && (
+                              <span className="text-xs text-green-500 flex items-center gap-1">
+                                完成
+                              </span>
+                            )}
+                            {upload.status === "failed" && (
+                              <span className="text-xs text-red-500">失败</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="size-4 text-muted-foreground hover:text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </ScrollArea>
+              </animated.div>
+
+              {/* Collapsed Content (Mini) */}
+              <animated.div
+                style={miniSpring}
+                className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-muted/20 transition-colors"
+                onClick={() => setMini(false)}
+              >
+                <div className="relative">
+                  {inProgressCount > 0 ? (
+                    <div className="relative flex items-center justify-center">
+                      <Loader2 className="size-6 animate-spin text-primary" />
+                      <span className="absolute text-[10px] font-bold">
+                        {inProgressCount}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="bg-primary text-primary-foreground rounded-full p-2">
+                      <Maximize2 className="size-5" />
+                    </div>
+                  )}
+                </div>
+              </animated.div>
             </animated.div>
-          </animated.div>
-        </div>
+          </div>
+        </FileUploadContext.Provider>
       </TaskContext.Provider>
+      <input
+        {...getInputProps()}
+        className="sr-only"
+        aria-label="Upload image file"
+        tabIndex={-1}
+      />
     </DrawerContext.Provider>
   );
 }
@@ -313,4 +361,10 @@ const DrawerContext = createContext<{
 }>({
   open: null,
   setOpen: () => {},
+});
+
+const FileUploadContext = createContext<{
+  openFileDialog: () => void;
+}>({
+  openFileDialog: () => {},
 });

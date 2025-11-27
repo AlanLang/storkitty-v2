@@ -9,6 +9,7 @@
     "baseColor": "neutral",
     "cssVariables": true
   },
+  "iconLibrary": "tabler",
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
@@ -16,5 +17,7 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "iconLibrary": "tabler"
+  "registries": {
+    "@reui": "https://reui.io/r/{name}.json"
+  }
 }
