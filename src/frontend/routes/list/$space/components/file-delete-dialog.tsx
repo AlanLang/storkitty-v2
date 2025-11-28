@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatFileSize } from "@/lib/file";
 import { useMutation } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
+import { FileIcon, Loader2, Trash2 } from "lucide-react";
 
 interface FileDeleteDialogProps {
   path: string;
@@ -47,49 +47,52 @@ export function FileDeleteDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <DialogTitle className="text-left">删除文件</DialogTitle>
-              <DialogDescription className="text-left">
-                此操作无法撤销
-              </DialogDescription>
-            </div>
+      <DialogContent className="sm:max-w-[400px] p-0 gap-0 overflow-hidden border-0 shadow-2xl">
+        <div className="p-6 flex flex-col items-center text-center space-y-4 pt-8">
+          <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-2 animate-in zoom-in-50 duration-300">
+            <Trash2 className="h-8 w-8 text-red-500" />
           </div>
-        </DialogHeader>
 
-        <div className="space-y-4 overflow-x-hidden">
-          <div className="rounded-lg bg-muted/50 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded bg-muted">
-                <div className="h-4 w-4 rounded bg-muted-foreground/20" />
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-xl font-semibold text-center">
+              删除文件
+            </DialogTitle>
+            <DialogDescription className="text-center text-muted-foreground max-w-[280px] mx-auto">
+              您确定要永久删除此文件吗？此操作无法撤销。
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="w-full mt-4">
+            <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 text-left">
+              <div className="h-10 w-10 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
+                <FileIcon className="h-5 w-5 text-blue-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{name}</p>
+                <p className="text-sm font-medium truncate text-foreground">
+                  {name}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {size ? formatFileSize(size) : "未知大小"}
                 </p>
               </div>
             </div>
           </div>
-
-          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
-            <p className="text-sm text-destructive">
-              确定要删除文件 "{name}" 吗？此操作无法撤销。
-            </p>
-          </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="p-6 bg-muted/10 flex-col sm:flex-row gap-2 sm:gap-2 border-t">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isPending}
+            className="w-full sm:w-1/2"
+          >
+            取消
+          </Button>
           <Button
             variant="destructive"
             onClick={handleConfirm}
             disabled={isPending}
-            className="gap-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            className="w-full sm:w-1/2 gap-2"
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
