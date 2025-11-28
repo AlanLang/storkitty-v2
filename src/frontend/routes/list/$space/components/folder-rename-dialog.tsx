@@ -9,10 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { FolderPen, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 
 interface FolderRenameDialogProps {
   path: string;
@@ -58,29 +59,26 @@ export function FolderRenameDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <FolderPen className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <DialogTitle className="text-left">重命名文件夹</DialogTitle>
-              <DialogDescription className="text-left">
-                请输入新的文件夹名称
-              </DialogDescription>
-            </div>
+      <DialogContent className={cn(DIALOG_CONTENT_CLASSNAME)}>
+        <div className="p-6 flex flex-col items-center text-center space-y-4 pt-8 min-w-0">
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 animate-in zoom-in-50 duration-300">
+            <FolderPen className="h-8 w-8 text-primary" />
           </div>
-        </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">文件夹名称</Label>
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-xl font-semibold text-center">
+              重命名文件夹
+            </DialogTitle>
+            <DialogDescription className="text-center text-muted-foreground max-w-[280px] mx-auto">
+              请输入新的文件夹名称
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="w-full mt-4">
             <Input
-              id="name"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="输入文件夹名称"
+              placeholder="请输入文件夹名称"
               disabled={isPending}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -91,16 +89,22 @@ export function FolderRenameDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isPending}>
+        <DialogFooter className="p-6 bg-muted/10 flex-col sm:flex-row gap-2 sm:gap-2 border-t">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isPending}
+            className="w-full sm:w-1/2"
+          >
             取消
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isPending || !newName || newName === name}
+            className="w-full sm:w-1/2 gap-2"
           >
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            确认
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isPending ? "重命名中..." : "确认"}
           </Button>
         </DialogFooter>
       </DialogContent>

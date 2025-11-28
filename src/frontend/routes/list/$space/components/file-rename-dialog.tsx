@@ -9,9 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { FolderPen, Loader2 } from "lucide-react";
+import { FilePen, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 
 interface FileRenameDialogProps {
   path: string;
@@ -57,42 +59,48 @@ export function FileRenameDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <FolderPen className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <DialogTitle className="text-left">重命名</DialogTitle>
-              <DialogDescription className="text-left">
-                请输入新的名称
-              </DialogDescription>
-            </div>
+      <DialogContent className={cn(DIALOG_CONTENT_CLASSNAME)}>
+        <div className="p-6 flex flex-col items-center text-center space-y-4 pt-8 min-w-0">
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 animate-in zoom-in-50 duration-300">
+            <FilePen className="h-8 w-8 text-primary" />
           </div>
-        </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <Input
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="请输入名称"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleConfirm();
-              }
-            }}
-          />
+          <DialogHeader className="space-y-2">
+            <DialogTitle className="text-xl font-semibold text-center">
+              重命名文件
+            </DialogTitle>
+            <DialogDescription className="text-center text-muted-foreground max-w-[280px] mx-auto">
+              请输入新的文件名称
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="w-full mt-4">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="请输入名称"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleConfirm();
+                }
+              }}
+            />
+          </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={isPending}>
+        <DialogFooter className="p-6 bg-muted/10 flex-col sm:flex-row gap-2 sm:gap-2 border-t">
+          <Button
+            variant="outline"
+            onClick={handleClose}
+            disabled={isPending}
+            className="w-full sm:w-1/2"
+          >
             取消
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isPending || !newName || newName === name}
-            className="gap-2"
+            className="w-full sm:w-1/2 gap-2"
           >
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {isPending ? "重命名中..." : "确认"}
