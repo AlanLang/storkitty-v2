@@ -39,6 +39,7 @@ if (!rootElement.innerHTML) {
         },
       },
       queries: {
+        retry: 0,
         throwOnError: (error: unknown) => {
           console.error(error);
           return false;

@@ -209,7 +209,6 @@ export class FileUploader {
 
     if (finishedChunks === fileTask.chunks.length) {
       this.activeFiles.delete(fileTask);
-      console.log("file upload complete", fileTask.path);
       // TODO: 在这里可以触发 onFileComplete(fileTask)
     }
   }

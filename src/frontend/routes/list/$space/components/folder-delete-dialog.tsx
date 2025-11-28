@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { AlertTriangle, FolderOpen, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 
 interface FolderDeleteDialogProps {
   path: string;
@@ -55,8 +57,8 @@ export function FolderDeleteDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[420px] p-0 gap-0 overflow-hidden border-0 shadow-2xl">
-        <div className="p-6 flex flex-col items-center text-center space-y-4 pt-8">
+      <DialogContent className={cn(DIALOG_CONTENT_CLASSNAME)}>
+        <div className="p-6 flex flex-col items-center text-center space-y-4 pt-8 min-w-0">
           <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mb-2 animate-in zoom-in-50 duration-300">
             <Trash2 className="h-8 w-8 text-red-500" />
           </div>

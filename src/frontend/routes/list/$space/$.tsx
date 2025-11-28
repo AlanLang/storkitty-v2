@@ -15,11 +15,13 @@ import { Input } from "@/components/ui/input";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Toggle } from "@/components/ui/toggle";
+import { useApp } from "@/hooks/use-app";
 import { QUERY_KEY, useFileList } from "@/hooks/use-file-list";
-import { useFileUploadDialog } from "@/hooks/use-task";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { TaskProvider, useFileUploadDialog } from "@/hooks/use-task";
 import { formatFileSize } from "@/lib/file";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import {
   ChevronRight,
   Circle,
@@ -50,17 +52,37 @@ export const Route = createFileRoute("/list/$space/$")({
 });
 
 function RouteComponent() {
+  const { space } = Route.useParams();
+  const appInfo = useApp();
+  if (!appInfo.storages?.some((storage) => storage.path === space)) {
+    return (
+      <Navigate
+        to="/list/$space/$"
+        params={{ space: appInfo.storages?.at(0)?.path ?? "data" }}
+      />
+    );
+  }
+
+  return (
+    <TaskProvider>
+      <FilePage />
+    </TaskProvider>
+  );
+}
+
+function FilePage() {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState<ListDialogProps["open"]>(null);
-
   const { space, _splat } = Route.useParams();
   const path = `${space}/${_splat}`;
   const { openFileDialog } = useFileUploadDialog();
+  const isMobile = useIsMobile();
 
   return (
     <div className="flex h-full w-full">
       <FileListSidebar />
       <ListContextMenu
+        disabled={isMobile}
         onUpload={openFileDialog}
         onCreateFolder={() => setOpen({ type: "create-folder", file: null })}
       >
@@ -354,17 +376,19 @@ function FileListItem({
     <MenuList
       type="context"
       key={file.name}
-      className="flex items-center justify-between p-3 hover:bg-muted/50 data-[state=open]:bg-muted/50 has-[[data-state=open]]:bg-muted/50 cursor-pointer group mt-0"
       items={items}
       onClick={() => onClick(file)}
+      title={file.name}
     >
-      <div>
-        <div className="flex items-center space-x-3">
+      <div className="flex items-center justify-between p-3 hover:bg-muted/50 data-[state=open]:bg-muted/50 has-[[data-state=open]]:bg-muted/50 cursor-pointer group mt-0">
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
           <div className="w-8 h-8 flex items-center justify-center rounded bg-muted group-hover:bg-muted/80">
             <FileIcon fileInfo={file} />
           </div>
-          <div>
-            <p className="text-sm font-medium">{file.name}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium min-w-0 truncate flex-1">
+              {file.name}
+            </p>
             <p className="text-xs text-muted-foreground">
               {file.fileType === "folder"
                 ? `${file.items || 0} 项目`
@@ -378,8 +402,8 @@ function FileListItem({
           <div className="text-xs text-muted-foreground">
             <TimeDisplay timeString={file.modified} />
           </div>
-          <div className="flex items-center opacity-0 group-hover:opacity-100 [&:has([data-state=open])]:opacity-100 transition-opacity">
-            <MenuList type="dropdown" items={items}>
+          <div className="flex items-center opacity-100 md:opacity-0 md:group-hover:opacity-100 [&:has([data-state=open])]:opacity-100 transition-opacity">
+            <MenuList type="dropdown" items={items} title={file.name}>
               <Button
                 variant="ghost"
                 size="icon"

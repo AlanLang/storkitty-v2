@@ -89,8 +89,6 @@ export function useFileUpload(options: UseFileUploadOptions) {
     );
   }, []);
 
-  console.log("tasks", tasks);
-
   const inputRef = useRef<HTMLInputElement>(null);
 
   const openFileDialog = useCallback(() => {
@@ -101,7 +99,6 @@ export function useFileUpload(options: UseFileUploadOptions) {
 
   const handleFileChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
-      console.log("file change", e.target.files);
       if (e.target.files && e.target.files.length > 0) {
         Array.from(e.target.files).forEach((file) => {
           addTask(file);

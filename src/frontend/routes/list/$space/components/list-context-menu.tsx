@@ -12,8 +12,16 @@ interface ListContextMenuProps {
   children: React.ReactNode;
   onUpload: () => void;
   onCreateFolder: () => void;
+  disabled: boolean;
 }
-export function ListContextMenu({ children, ...props }: ListContextMenuProps) {
+export function ListContextMenu({
+  children,
+  disabled,
+  ...props
+}: ListContextMenuProps) {
+  if (disabled) {
+    return children;
+  }
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>

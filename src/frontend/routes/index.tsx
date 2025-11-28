@@ -15,7 +15,7 @@ function RouteComponent() {
   return (
     <Navigate
       to="/list/$space/$"
-      params={{ space: appInfo.storages?.at(0)?.path ?? "default" }}
+      params={{ space: appInfo.storages?.at(0)?.path ?? "data" }}
     />
   );
 }
