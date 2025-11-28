@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { FolderPlus, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { DIALOG_CONTENT_CLASSNAME } from "./constant";
 
 interface FolderCreateDialogProps {
   path: string;
@@ -61,62 +62,65 @@ export function FolderCreateDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className={cn(DIALOG_CONTENT_CLASSNAME)}>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleConfirm)}
-            className="space-y-4"
+            className="flex flex-col h-full"
           >
-            <DialogHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                  <FolderPlus className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <DialogTitle className="text-left">创建新文件夹</DialogTitle>
-                  <DialogDescription className="text-left">
-                    在当前位置创建一个新的文件夹
-                  </DialogDescription>
-                </div>
+            <div className="p-6 flex flex-col items-center text-center space-y-4 pt-8 min-w-0">
+              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 animate-in zoom-in-50 duration-300">
+                <FolderPlus className="h-8 w-8 text-primary" />
               </div>
-            </DialogHeader>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
+              <DialogHeader className="space-y-2">
+                <DialogTitle className="text-xl font-semibold text-center">
+                  创建新文件夹
+                </DialogTitle>
+                <DialogDescription className="text-center text-muted-foreground max-w-[280px] mx-auto">
+                  在当前位置创建一个新的文件夹
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="w-full mt-4 space-y-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <Label
-                        htmlFor="directory-name"
-                        className="text-sm font-medium"
-                      >
-                        文件夹名称
-                      </Label>
                       <Input
                         {...field}
                         placeholder="请输入文件夹名称"
                         autoFocus
+                        disabled={isPending}
                       />
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="rounded-lg bg-muted/50 p-3">
-                <p className="text-sm text-muted-foreground">
-                  💡 提示：文件夹名称不能包含特殊字符，且不能与系统保留名冲突
-                </p>
+                <div className="rounded-lg bg-muted/50 p-3 text-left">
+                  <p className="text-xs text-muted-foreground">
+                    💡 提示：文件夹名称不能包含特殊字符，且不能与系统保留名冲突
+                  </p>
+                </div>
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="p-6 bg-muted/10 flex-col sm:flex-row gap-2 sm:gap-2 border-t mt-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={isPending}
+                className="w-full sm:w-1/2"
+              >
+                取消
+              </Button>
               <Button
                 type="submit"
                 disabled={!canCreate}
-                className="gap-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                className="w-full sm:w-1/2 gap-2"
               >
                 {isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
