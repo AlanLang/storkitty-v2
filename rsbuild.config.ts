@@ -36,6 +36,10 @@ export default defineConfig({
         target: "http://localhost:3330",
         changeOrigin: true,
       },
+      "/download": {
+        target: "http://localhost:3330",
+        changeOrigin: true,
+      },
     },
   },
 });

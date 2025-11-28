@@ -31,6 +31,10 @@ impl SafePath {
     }
     Ok(self.0.join(input))
   }
+
+  pub fn get_path(&self) -> PathBuf {
+    self.0.clone()
+  }
 }
 
 // -------------------------------------------

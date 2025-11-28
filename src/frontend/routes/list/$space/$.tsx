@@ -41,11 +41,14 @@ import {
   UploadIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { FileIcon } from "./components/file-icon";
 import { FileListEmpty } from "./components/file-list-empty";
 import { ListContextMenu } from "./components/list-context-menu";
 import { ListDialog, type ListDialogProps } from "./components/list-dialog";
 import { FileListSidebar } from "./components/sidebar";
+import { createDownloadUrl, downloadFile } from "./utils/downloadFile";
+import { writeTextIntoClipboard } from "./utils/writeTextIntoClipboard";
 
 export const Route = createFileRoute("/list/$space/$")({
   component: RouteComponent,
@@ -254,6 +257,7 @@ function FileList({
 }) {
   const { space, _splat } = Route.useParams();
   const navigate = useNavigate();
+  const path = `${space}/${_splat}`;
   const { data, isLoading, error } = useFileList({ space, splat: _splat });
 
   const handleClick = (file: FileInfo) => {
@@ -304,6 +308,7 @@ function FileList({
     <div data-testid="file-list" className="divide-y divide-border border">
       {data?.files.map((file) => (
         <FileListItem
+          path={path}
           key={file.name}
           file={file}
           onClick={handleClick}
@@ -316,6 +321,7 @@ function FileList({
 }
 
 interface FileListItemProps {
+  path: string;
   file: FileInfo;
   onDelete: (file: FileInfo) => void;
   onRename: (file: FileInfo) => void;
@@ -323,30 +329,15 @@ interface FileListItemProps {
 }
 
 function FileListItem({
+  path,
   file,
   onClick,
   onDelete,
   onRename,
 }: FileListItemProps) {
-  const items: MenuListProps["items"] = [
-    {
-      label: "下载",
-      icon: <CloudDownload className="mr-2 h-4 w-4" />,
-      onClick: () => {},
-    },
-    {
-      label: "预览",
-      icon: <SquareArrowOutUpRight className="mr-2 h-4 w-4" />,
-      onClick: () => {},
-    },
-    {
-      label: "复制链接",
-      icon: <Link className="mr-2 h-4 w-4" />,
-      onClick: () => {},
-    },
-    {
-      type: "separator",
-    },
+  const isFolder = file.fileType === "folder";
+
+  const baseItems: MenuListProps["items"] = [
     {
       label: "重命名",
       icon: <FolderPen className="mr-2 h-4 w-4" />,
@@ -372,6 +363,37 @@ function FileListItem({
     },
   ];
 
+  const items: MenuListProps["items"] = isFolder
+    ? baseItems
+    : [
+        {
+          label: "下载",
+          icon: <CloudDownload className="mr-2 h-4 w-4" />,
+          onClick: () => {
+            downloadFile(path, file.name);
+          },
+        },
+        {
+          label: "预览",
+          icon: <SquareArrowOutUpRight className="mr-2 h-4 w-4" />,
+          onClick: () => {},
+        },
+        {
+          label: "复制链接",
+          icon: <Link className="mr-2 h-4 w-4" />,
+          onClick: () => {
+            const url = createDownloadUrl(path, file.name);
+            writeTextIntoClipboard(url).then(() => {
+              toast.success("链接已复制到剪贴板");
+            });
+          },
+        },
+        {
+          type: "separator",
+        },
+        ...baseItems,
+      ];
+
   return (
     <MenuList
       type="context"
@@ -380,7 +402,7 @@ function FileListItem({
       onClick={() => onClick(file)}
       title={file.name}
     >
-      <div className="flex items-center justify-between p-3 hover:bg-muted/50 data-[state=open]:bg-muted/50 has-[[data-state=open]]:bg-muted/50 cursor-pointer group mt-0">
+      <div className="flex items-center justify-between p-3 hover:bg-muted/50 data-[state=open]:bg-muted/50 has-data-[[state=open]]:bg-muted/50 cursor-pointer group mt-0">
         <div className="flex items-center space-x-3 flex-1 min-w-0">
           <div className="w-8 h-8 flex items-center justify-center rounded bg-muted group-hover:bg-muted/80">
             <FileIcon fileInfo={file} />

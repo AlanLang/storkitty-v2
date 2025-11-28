@@ -1,4 +1,5 @@
 mod app;
+mod download;
 mod file;
 mod folder;
 mod login;
@@ -22,6 +23,7 @@ pub async fn start_server() -> anyhow::Result<()> {
 
   let app = Router::<DBConnection>::new()
     .nest("/api", create_api_router())
+    .route("/download/{*path}", routing::get(download::download_file))
     .fallback_service(get_service(serve_dir))
     .layer(axum::extract::DefaultBodyLimit::disable())
     .with_state(conn);
