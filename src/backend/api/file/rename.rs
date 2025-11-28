@@ -2,7 +2,7 @@ use axum::Json;
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::backend::{error::AppError, extractor::storage::Storage};
+use crate::backend::{error::AppError, extractor::storage::StoragePath};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -12,7 +12,7 @@ pub struct RenameFileDto {
 }
 
 pub async fn rename(
-  Storage(local_path): Storage,
+  StoragePath(local_path): StoragePath,
   Json(dto): Json<RenameFileDto>,
 ) -> Result<(), AppError> {
   let old_file_path = local_path.safe_join(&dto.from)?;

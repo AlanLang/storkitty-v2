@@ -2,7 +2,7 @@ use axum::Json;
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::backend::{db::DBConnection, error::AppError, extractor::storage::Storage, utils};
+use crate::backend::{db::DBConnection, error::AppError, extractor::storage::StoragePath, utils};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -12,7 +12,7 @@ pub struct CreateFolderDto {
 
 #[axum::debug_handler(state = DBConnection)]
 pub async fn create_folder(
-  Storage(local_path): Storage,
+  StoragePath(local_path): StoragePath,
   Json(dto): Json<CreateFolderDto>,
 ) -> Result<(), AppError> {
   let name = dto.name;

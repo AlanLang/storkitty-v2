@@ -17,6 +17,7 @@ pub fn is_system_file(path: &str) -> bool {
     "node_modules",
     ".gitkeep",
     "desktop.ini",
+    ".storkitty",
   ];
   reserved_names.contains(&file_name)
 }

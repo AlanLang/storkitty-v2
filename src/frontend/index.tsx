@@ -4,7 +4,6 @@ import { createRoot } from "react-dom/client";
 import { routeTree } from "./routes/routeTree.gen";
 
 import { AppProvider } from "@/hooks/use-app";
-import { TaskProvider } from "@/hooks/use-task";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { toast, Toaster } from "sonner";
 import "./index.css";
@@ -52,9 +51,7 @@ if (!rootElement.innerHTML) {
       <QueryClientProvider client={queryClient}>
         <Toaster richColors />
         <AppProvider>
-          <TaskProvider>
-            <RouterProvider router={router} />
-          </TaskProvider>
+          <RouterProvider router={router} />
         </AppProvider>
       </QueryClientProvider>
     </StrictMode>,

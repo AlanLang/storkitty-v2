@@ -1,4 +1,5 @@
 import { useIsWaitingAppInfo } from "@/hooks/use-app";
+import { TaskProvider } from "@/hooks/use-task";
 import { createRootRoute, Outlet } from "@tanstack/react-router";
 export const Route = createRootRoute({
   component: () => {
@@ -21,8 +22,10 @@ function RootRouteComponent() {
   }
 
   return (
-    <div className="@container/main flex flex-1 flex-col h-screen">
-      <Outlet />
-    </div>
+    <TaskProvider>
+      <div className="@container/main flex flex-1 flex-col h-screen">
+        <Outlet />
+      </div>
+    </TaskProvider>
   );
 }

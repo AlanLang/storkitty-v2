@@ -23,6 +23,7 @@ pub async fn start_server() -> anyhow::Result<()> {
   let app = Router::<DBConnection>::new()
     .nest("/api", create_api_router())
     .fallback_service(get_service(serve_dir))
+    .layer(axum::extract::DefaultBodyLimit::disable())
     .with_state(conn);
 
   let host = std::env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());

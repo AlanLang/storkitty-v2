@@ -2,7 +2,7 @@ use axum::Json;
 use serde::Deserialize;
 use tokio::fs;
 
-use crate::backend::{db::DBConnection, error::AppError, extractor::storage::Storage};
+use crate::backend::{db::DBConnection, error::AppError, extractor::storage::StoragePath};
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -12,7 +12,7 @@ pub struct DeleteFolderDto {
 
 #[axum::debug_handler(state = DBConnection)]
 pub async fn delete_folder(
-  Storage(local_path): Storage,
+  StoragePath(local_path): StoragePath,
   Json(dto): Json<DeleteFolderDto>,
 ) -> Result<(), AppError> {
   for target in dto.targets {
