@@ -37,6 +37,7 @@ import {
   MoreVertical,
   SendToBack,
   SquareArrowOutUpRight,
+  SquarePen,
   Trash2,
   UploadIcon,
 } from "lucide-react";
@@ -109,6 +110,7 @@ function FilePage() {
             <FileList
               onDelete={(file) => setOpen({ type: "delete", file })}
               onRename={(file) => setOpen({ type: "rename", file })}
+              onEdit={(file) => setOpen({ type: "edit", file })}
             />
           </div>
         </SidebarInset>
@@ -260,9 +262,11 @@ function FileBreadcrumb() {
 function FileList({
   onDelete,
   onRename,
+  onEdit,
 }: {
   onDelete: (file: FileInfo) => void;
   onRename: (file: FileInfo) => void;
+  onEdit: (file: FileInfo) => void;
 }) {
   const { space, _splat } = Route.useParams();
   const navigate = useNavigate();
@@ -323,6 +327,7 @@ function FileList({
           onClick={handleClick}
           onDelete={onDelete}
           onRename={onRename}
+          onEdit={onEdit}
         />
       ))}
     </div>
@@ -335,6 +340,7 @@ interface FileListItemProps {
   onDelete: (file: FileInfo) => void;
   onRename: (file: FileInfo) => void;
   onClick: (file: FileInfo) => void;
+  onEdit: (file: FileInfo) => void;
 }
 
 function FileListItem({
@@ -343,6 +349,7 @@ function FileListItem({
   onClick,
   onDelete,
   onRename,
+  onEdit,
 }: FileListItemProps) {
   const isFolder = file.fileType === "folder";
 
@@ -375,6 +382,11 @@ function FileListItem({
   const items: MenuListProps["items"] = isFolder
     ? baseItems
     : [
+        {
+          label: "编辑",
+          icon: <SquarePen className="mr-2 h-4 w-4" />,
+          onClick: () => onEdit(file),
+        },
         {
           label: "下载",
           icon: <CloudDownload className="mr-2 h-4 w-4" />,

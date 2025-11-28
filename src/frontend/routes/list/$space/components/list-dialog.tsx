@@ -1,6 +1,7 @@
 import { FileType, type FileInfo } from "@/api/file/list";
 import { FileCreateDialog } from "./file-create-dialog";
 import { FileDeleteDialog } from "./file-delete-dialog";
+import { FileEditDialog } from "./file-edit-dialog";
 import { FileRenameDialog } from "./file-rename-dialog";
 import { FolderCreateDialog } from "./folder-create-dialog";
 import { FolderDeleteDialog } from "./folder-delete-dialog";
@@ -9,7 +10,7 @@ import { FolderRenameDialog } from "./folder-rename-dialog";
 export interface ListDialogProps {
   path: string;
   open: {
-    type: "delete" | "rename" | "create-folder" | "create-file";
+    type: "delete" | "rename" | "create-folder" | "create-file" | "edit";
     file: FileInfo | null;
     defaultName?: string;
   } | null;
@@ -72,6 +73,14 @@ export function ListDialog({
         path={path}
         isOpen={open?.type === "create-file"}
         defaultName={open?.defaultName}
+        onCancel={onCancel}
+        onFinish={onFinish}
+      />
+
+      <FileEditDialog
+        path={path}
+        fileName={file?.name ?? ""}
+        isOpen={open?.type === "edit" && file?.fileType === FileType.File}
         onCancel={onCancel}
         onFinish={onFinish}
       />
