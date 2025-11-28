@@ -279,6 +279,8 @@ function FileList({
         to: "/list/$space/$",
         params: { space, _splat: `${_splat}/${file.name}` },
       });
+    } else {
+      onEdit(file);
     }
   };
 

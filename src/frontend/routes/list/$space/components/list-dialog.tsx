@@ -1,7 +1,7 @@
 import { FileType, type FileInfo } from "@/api/file/list";
 import { FileCreateDialog } from "./file-create-dialog";
 import { FileDeleteDialog } from "./file-delete-dialog";
-import { FileEditDialog } from "./file-edit-dialog";
+import { FileEditDialog } from "./file-edit/file-edit-dialog";
 import { FileRenameDialog } from "./file-rename-dialog";
 import { FolderCreateDialog } from "./folder-create-dialog";
 import { FolderDeleteDialog } from "./folder-delete-dialog";
