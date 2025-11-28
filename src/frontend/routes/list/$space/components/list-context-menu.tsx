@@ -5,6 +5,9 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuShortcut,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
@@ -31,14 +34,22 @@ export function ListContextMenu({
           <ContextMenuShortcut>⌘u</ContextMenuShortcut>
         </ContextMenuItem>
         <ContextMenuSeparator />
-        <ContextMenuItem inset>
-          新建文件
-          <ContextMenuShortcut>⌘n</ContextMenuShortcut>
-        </ContextMenuItem>
         <ContextMenuItem inset onClick={props.onCreateFolder}>
           新建文件夹
           <ContextMenuShortcut>⌘m</ContextMenuShortcut>
         </ContextMenuItem>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger inset>新建</ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-44">
+            <ContextMenuItem>
+              文本(.txt)
+              <ContextMenuShortcut>⌘n</ContextMenuShortcut>
+            </ContextMenuItem>
+            <ContextMenuItem>Markdown(.md)</ContextMenuItem>
+            <ContextMenuItem>Excalidraw(.excalidraw)</ContextMenuItem>
+            <ContextMenuItem>D2(.d2)</ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
         <ContextMenuSeparator />
         <ContextMenuItem inset>
           远程下载
