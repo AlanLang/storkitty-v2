@@ -15,6 +15,7 @@ interface ListContextMenuProps {
   children: React.ReactNode;
   onUpload: () => void;
   onCreateFolder: () => void;
+  onCreateFile: (defaultName?: string) => void;
   disabled: boolean;
 }
 export function ListContextMenu({
@@ -41,13 +42,21 @@ export function ListContextMenu({
         <ContextMenuSub>
           <ContextMenuSubTrigger inset>新建</ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-44">
-            <ContextMenuItem>
+            <ContextMenuItem onClick={() => props.onCreateFile("新文件.txt")}>
               文本(.txt)
               <ContextMenuShortcut>⌘n</ContextMenuShortcut>
             </ContextMenuItem>
-            <ContextMenuItem>Markdown(.md)</ContextMenuItem>
-            <ContextMenuItem>Excalidraw(.excalidraw)</ContextMenuItem>
-            <ContextMenuItem>D2(.d2)</ContextMenuItem>
+            <ContextMenuItem onClick={() => props.onCreateFile("新文件.md")}>
+              Markdown(.md)
+            </ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => props.onCreateFile("新文件.excalidraw")}
+            >
+              Excalidraw(.excalidraw)
+            </ContextMenuItem>
+            <ContextMenuItem onClick={() => props.onCreateFile("新文件.d2")}>
+              D2(.d2)
+            </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>
         <ContextMenuSeparator />

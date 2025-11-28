@@ -88,6 +88,9 @@ function FilePage() {
         disabled={isMobile}
         onUpload={openFileDialog}
         onCreateFolder={() => setOpen({ type: "create-folder", file: null })}
+        onCreateFile={(defaultName) =>
+          setOpen({ type: "create-file", file: null, defaultName })
+        }
       >
         <SidebarInset className="flex-1 flex flex-col">
           <div className="border-b p-4 flex items-center h-18">
@@ -95,6 +98,9 @@ function FilePage() {
               onOpenFileUpload={openFileDialog}
               onCreateFolder={() =>
                 setOpen({ type: "create-folder", file: null })
+              }
+              onCreateFile={(defaultName) =>
+                setOpen({ type: "create-file", file: null, defaultName })
               }
             />
           </div>
@@ -125,6 +131,7 @@ function FilePage() {
 interface FileToolbarProps {
   onOpenFileUpload: () => void;
   onCreateFolder: () => void;
+  onCreateFile: (defaultName: string) => void;
 }
 
 function FileToolbar(props: FileToolbarProps) {
@@ -166,7 +173,9 @@ function FileToolbar(props: FileToolbarProps) {
                   上传文件
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => props.onCreateFile("新文件.txt")}
+                >
                   <FilePlus />
                   新建文件
                 </DropdownMenuItem>
