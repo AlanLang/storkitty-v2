@@ -354,7 +354,7 @@ function FileListItem({
     <MenuList
       type="context"
       key={file.name}
-      className="flex items-center justify-between p-3 hover:bg-muted/50 cursor-pointer group mt-0"
+      className="flex items-center justify-between p-3 hover:bg-muted/50 data-[state=open]:bg-muted/50 has-[[data-state=open]]:bg-muted/50 cursor-pointer group mt-0"
       items={items}
       onClick={() => onClick(file)}
     >
