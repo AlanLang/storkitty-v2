@@ -1,4 +1,5 @@
 import { getFileContent, saveFileContent } from "@/api/file/content";
+import { FileType } from "@/api/file/list";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { FileIcon } from "@/routes/list/$space/components/file-icon";
 import type { OnMount } from "@monaco-editor/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Blocks, Copy, Loader2, Save, X } from "lucide-react";
@@ -25,6 +27,9 @@ export function TextFileEditDialog(props: FileEditDialogProps) {
   const editorRef = useRef<Parameters<OnMount>[0]>(null);
   const isChanged = useRef(false);
 
+  const theme = localStorage.getItem("theme") || "light";
+  const isDark = theme === "dark";
+
   useHotkeys(
     "mod+s",
     () => {
@@ -36,10 +41,13 @@ export function TextFileEditDialog(props: FileEditDialogProps) {
     },
   );
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["file-content", filePath],
     queryFn: () => getFileContent(filePath),
     enabled: isOpen,
+    staleTime: 0,
+    gcTime: 0,
+    retry: false,
   });
 
   const { mutate: saveContent, isPending: isSaving } = useMutation({
@@ -83,6 +91,7 @@ export function TextFileEditDialog(props: FileEditDialogProps) {
       >
         <DialogHeader className="p-4 border-b shrink-0 flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center gap-2">
+            <FileIcon fileInfo={{ name: fileName, fileType: FileType.File }} />
             {fileName}
             {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           </DialogTitle>
@@ -127,6 +136,25 @@ export function TextFileEditDialog(props: FileEditDialogProps) {
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
+          ) : error ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+              <div className="h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center">
+                <X className="h-8 w-8 text-destructive" />
+              </div>
+              <div className="text-center space-y-2">
+                <h3 className="font-semibold text-lg">无法加载文件内容</h3>
+                <p className="text-muted-foreground max-w-sm text-sm break-all">
+                  {decodeURIComponent(error.message) ||
+                    "发生未知错误，请稍后重试"}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={onCancel}>
+                  关闭
+                </Button>
+                <Button onClick={() => refetch()}>重试</Button>
+              </div>
+            </div>
           ) : (
             <Suspense
               fallback={
@@ -139,7 +167,7 @@ export function TextFileEditDialog(props: FileEditDialogProps) {
                 height="100%"
                 defaultLanguage={getLanguage(fileExtension)}
                 defaultValue={data}
-                theme="light"
+                theme={isDark ? "vs-dark" : "light"}
                 options={{
                   minimap: { enabled: false },
                   fontSize: 14,
